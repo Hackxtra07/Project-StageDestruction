@@ -1,0 +1,44 @@
+# ── .NET / MSBuild ────────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# ── Publish output ────────────────────────────────────────────────────────────
+publish/
+out/
+
+# ── NuGet ─────────────────────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ── Build logs ────────────────────────────────────────────────────────────────
+*.log
+*.binlog
+msbuild.log
+
+# ── OS noise ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE / Editor ──────────────────────────────────────────────────────────────
+.idea/
+*.swp
+*.swo
+*.orig
+
+# ── Downloads folder (runtime artefacts) ─────────────────────────────────────
+downloads/
+
+# ── Secrets / config overrides ────────────────────────────────────────────────
+appsettings.*.json
+secrets.json
+*.env
