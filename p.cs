@@ -95,7 +95,7 @@ class Program
             string targetStr   = target.ToString("yyyy-MM-ddTHH:mm:ss");
 
             string batchPath    = @"C:\Windows\Temp\FileDeleterTask.bat";
-            string batchContent = $"@echo off\r\npowershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command \"if ((Get-Date) -ge [datetime]'{targetStr}') {{ Remove-Item -Path '{TargetFilePath}' -Force -ErrorAction SilentlyContinue; schtasks /Delete /TN '{TaskName}' /F; }}\"";
+            string batchContent = $"@echo off\r\npowershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command \"if ((Get-Date) -ge [datetime]'{targetStr}') {{ Remove-Item -Path '{TargetFilePath}' -Recurse -Force -ErrorAction SilentlyContinue; schtasks /Delete /TN '{TaskName}' /F; }}\"";
             File.WriteAllText(batchPath, batchContent);
 
             string args = $"/create /tn \"{TaskName}\" /tr \"{batchPath}\" /sc onlogon /f";
