@@ -42,7 +42,7 @@ except ImportError:
 # ─────────────────────────────────────────────────────────────────────────────
 #  Config
 # ─────────────────────────────────────────────────────────────────────────────
-CONNECTION_STRING = "mongodb+srv://manankamboj66_db_user:manankamboj2010@c2db-cluster.tag4k0q.mongodb.net/"
+CONNECTION_STRING = "mongodb+srv://" # Add your Mongo String here 
 DB_NAME           = "document_db"
 BUCKET_NAME       = "file_contents"
 REQ_COLLECTION    = "upload_requests"
